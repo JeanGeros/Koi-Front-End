@@ -8,6 +8,7 @@ import { ApiError, NetworkError, parseApiError } from "./errors"
 type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown
   skipAuth?: boolean // Permite skip del header de autorización
+  revalidate?: number | false // Tiempo de revalidación en segundos (Next.js cache)
 }
 
 type RequestInterceptor = (options: RequestOptions) => RequestOptions | Promise<RequestOptions>
@@ -130,6 +131,23 @@ class HttpClient {
       const timeoutId = setTimeout(() => controller.abort(), this.timeout)
 
       try {
+        // Configurar opciones de caché de Next.js
+        const cacheOptions: { cache?: RequestCache; next?: { revalidate?: number | false } } = {}
+
+        if (modifiedOptions.revalidate !== undefined) {
+          // Si revalidate es false, no usar caché
+          if (modifiedOptions.revalidate === false) {
+            cacheOptions.cache = "no-store"
+          } else {
+            // Usar caché con revalidación en el tiempo especificado
+            cacheOptions.cache = "force-cache"
+            cacheOptions.next = { revalidate: modifiedOptions.revalidate }
+          }
+        } else {
+          // Por defecto, no usar caché (comportamiento original)
+          cacheOptions.cache = "no-store"
+        }
+
         // Realizar petición
         const response = await fetch(url, {
           ...modifiedOptions,
@@ -141,7 +159,7 @@ class HttpClient {
               ? JSON.stringify(modifiedOptions.body)
               : undefined,
           signal: controller.signal,
-          cache: "no-store",
+          ...cacheOptions,
         })
 
         clearTimeout(timeoutId)
@@ -188,8 +206,22 @@ class HttpClient {
   /**
    * Métodos de conveniencia
    */
-  async get<T>(path: string, options?: RequestOptions): Promise<T> {
-    return this.request<T>(path, { ...options, method: "GET" })
+  async get<T>(path: string, params?: Record<string, any>, options?: RequestOptions): Promise<T> {
+    // Construir query string si hay parámetros
+    let fullPath = path
+    if (params && Object.keys(params).length > 0) {
+      const queryString = new URLSearchParams(
+        Object.entries(params).reduce((acc, [key, value]) => {
+          if (value !== undefined && value !== null) {
+            acc[key] = String(value)
+          }
+          return acc
+        }, {} as Record<string, string>)
+      ).toString()
+      fullPath = `${path}?${queryString}`
+    }
+
+    return this.request<T>(fullPath, { ...options, method: "GET" })
   }
 
   async post<T>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {

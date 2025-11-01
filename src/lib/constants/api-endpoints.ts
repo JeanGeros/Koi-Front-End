@@ -19,8 +19,17 @@ export const API_ENDPOINTS = {
   },
   // Dashboard (ejemplo)
   DASHBOARD: {
-    OVERVIEW: "/api/dashboard/marketing/",
+    TOP_CUSTOMERS_BY_CATEGORY: "/api/dashboard/top_customers_by_category/",
+    POINTS_DISTRIBUTION: "/api/dashboard/points-distribution/",
+    POTENTIAL_BUYERS: "/api/dashboard/potential-buyers/",
+    TOP_CUSTOMERS_SPENDING: "/api/dashboard/top-customers-spending/",
+    KPI_CARDS: "/api/dashboard/kpi-cards/",
+
     STATS: "/api/dashboard/stats/",
     CHARTS: "/api/dashboard/charts/",
+  },
+  // Analytics - KPIs Avanzados
+  ANALYTICS: {
+    ADVANCED_KPIS: "/api/analytics/kpis/advanced/",
   },
 } as const

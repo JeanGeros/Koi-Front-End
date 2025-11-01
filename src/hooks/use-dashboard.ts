@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { dashboardService } from '@/lib/services/dashboard.service'
-import type { DashboardOverview } from '@/lib/types/dashboard.types'
+import type { PropsTopCustomersByCategory } from '@/lib/types/dashboard.types'
 
 export function useDashboard() {
-  const [data, setData] = useState<DashboardOverview | null>(null)
+  const [data, setData] = useState<PropsTopCustomersByCategory | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -15,7 +15,7 @@ export function useDashboard() {
       try {
         setIsLoading(true)
         setError(null)
-        const overview = await dashboardService.getOverview()
+        const overview = await dashboardService.getTopCustomersByCategory()
     
         if (mounted) setData(overview)
       } catch (err) {
