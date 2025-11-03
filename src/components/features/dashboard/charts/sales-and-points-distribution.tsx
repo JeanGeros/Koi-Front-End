@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
 import { usePointsDistribution } from "@/hooks/use-points-distribution";
@@ -18,14 +17,8 @@ import {
   ChartContainer,
   ChartTooltip,
 } from "@/components/ui/chart";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { formatNumber } from "@/lib/utils/formatters";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const description = "An interactive area chart";
 
@@ -41,7 +34,6 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function SalesAndPointsDistributionChart() {
-  const [timeRange, setTimeRange] = React.useState("90d");
   // ✅ Clean Architecture: Leer del contexto (Presentation Layer) y pasar explícitamente
   const { filters } = useDashboardFilters();
   const { data, isLoading, error } = usePointsDistribution(filters);
@@ -51,15 +43,19 @@ export function SalesAndPointsDistributionChart() {
     return (
       <Card className="@container/card">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-neutral-700">
+          <CardTitle className="text-2xl font-bold text-neutral-700 dark:text-white">
             Puntos Generados por Fecha
           </CardTitle>
           <CardDescription>Cargando datos...</CardDescription>
         </CardHeader>
         <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-          <div className="h-[320px] w-full flex items-center justify-center text-muted-foreground">
-            Cargando gráfico...
+        <div className="flex flex-col space-y-3">
+          <Skeleton className="h-[320px] rounded-xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[90%]" />
+            <Skeleton className="h-4 w-[80%]" />
           </div>
+        </div>
         </CardContent>
       </Card>
     );
@@ -98,26 +94,7 @@ export function SalesAndPointsDistributionChart() {
           <span className="@[540px]/card:hidden">Last 3 months</span>
         </CardDescription>
         <CardAction>
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger
-              className="flex w-40 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate @[767px]/card:hidden"
-              size="sm"
-              aria-label="Select a value"
-            >
-              <SelectValue placeholder="Last 3 months" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              <SelectItem value="90d" className="rounded-lg">
-                Last 3 months
-              </SelectItem>
-              <SelectItem value="30d" className="rounded-lg">
-                Last 30 days
-              </SelectItem>
-              <SelectItem value="7d" className="rounded-lg">
-                Last 7 days
-              </SelectItem>
-            </SelectContent>
-          </Select>
+         
         </CardAction>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">

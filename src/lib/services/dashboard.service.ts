@@ -15,10 +15,11 @@ import { apiClient } from "../api"
 import { API_ENDPOINTS } from "../constants/api-endpoints"
 import type {
   PropsTopCustomersByCategory,
+  TopCustomersByCategoryParams,
+  SalesByChannelResponse,
+  SalesByChannelParams,
   PointsDistributionResponse,
   PointsDistributionParams,
-  LowPenetrationResponse,
-  LowPenetrationParams,
   TopCustomersNextPurchaseResponse,
   TopCustomersNextPurchaseParams,
   TopCustomersSpendingResponse,
@@ -48,14 +49,26 @@ export type ChartData = {
  */
 export const dashboardService = {
   /**
-   * Obtiene el resumen completo del dashboard
+   * Obtiene top clientes por categoría de productos
    * Cache: 5 minutos (300 segundos)
    */
-  getTopCustomersByCategory: async (): Promise<PropsTopCustomersByCategory> => {
+  getTopCustomersByCategory: async (params?: TopCustomersByCategoryParams): Promise<PropsTopCustomersByCategory> => {
     return apiClient.get<PropsTopCustomersByCategory>(
       API_ENDPOINTS.DASHBOARD.TOP_CUSTOMERS_BY_CATEGORY,
-      undefined,
-      { revalidate: 300 }
+      params,
+      { revalidate: false }
+    )
+  },
+
+  /**
+   * Obtiene ventas por canal/sucursal
+   * Cache: 5 minutos (300 segundos)
+   */
+  getSalesByChannel: async (params?: SalesByChannelParams): Promise<SalesByChannelResponse> => {
+    return apiClient.get<SalesByChannelResponse>(
+      API_ENDPOINTS.DASHBOARD.SALES_BY_CHANNEL,
+      params,
+      { revalidate: false }
     )
   },
 

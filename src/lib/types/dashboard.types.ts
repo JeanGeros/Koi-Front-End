@@ -38,6 +38,49 @@ export type PropsTopCustomersByCategory = {
   count_customers: number
 }
 
+export type TopCustomersByCategoryParams = {
+  start_date?: string
+  end_date?: string
+  family_product?: number
+  count_customers?: number
+}
+
+// Sales by Channel API Types
+export type SalesByChannelDetail = {
+  channel: string
+  channelCode: string
+  totalAmount: number
+  totalCount: number
+  averageAmount: number
+}
+
+export type SalesByChannelSummary = {
+  totalSales: number
+  totalOrders: number
+  averageOrder: number
+}
+
+export type SalesByChannelPeriod = {
+  startDate: string
+  endDate: string
+}
+
+export type SalesByChannelResponse = {
+  chartData: {
+    labels: string[]
+    values: number[]
+    counts: number[]
+    details: SalesByChannelDetail[]
+  }
+  summary: SalesByChannelSummary
+  period: SalesByChannelPeriod
+}
+
+export type SalesByChannelParams = {
+  start_date?: string
+  end_date?: string
+}
+
 export type DashboardCustomerWithMostSales = {
   rut: string
   nombre_completo: string

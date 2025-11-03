@@ -16,6 +16,7 @@ import {
   ChartTooltip,
 } from "@/components/ui/chart";
 import { formatNumber } from "@/lib/utils/formatters";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const description = "Top clientes por gasto total";
 
@@ -53,10 +54,14 @@ export function TopCustomersSpendingChart() {
           </CardTitle>
           <CardDescription>Cargando datos...</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="h-[320px] w-full flex items-center justify-center text-muted-foreground">
-            Cargando gráfico...
+        <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+        <div className="flex flex-col space-y-3">
+          <Skeleton className="h-[320px] rounded-xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[90%]" />
+            <Skeleton className="h-4 w-[80%]" />
           </div>
+        </div>
         </CardContent>
       </Card>
     );

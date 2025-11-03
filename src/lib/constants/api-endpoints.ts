@@ -20,6 +20,7 @@ export const API_ENDPOINTS = {
   // Dashboard (ejemplo)
   DASHBOARD: {
     TOP_CUSTOMERS_BY_CATEGORY: "/api/dashboard/top_customers_by_category/",
+    SALES_BY_CHANNEL: "/api/dashboard/sales-by-channel/",
     POINTS_DISTRIBUTION: "/api/dashboard/points-distribution/",
     POTENTIAL_BUYERS: "/api/dashboard/potential-buyers/",
     TOP_CUSTOMERS_SPENDING: "/api/dashboard/top-customers-spending/",

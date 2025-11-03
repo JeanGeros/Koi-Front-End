@@ -6,7 +6,6 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SectionCards } from "@/components/features/dashboard/section-cards";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { useDashboard } from "@/hooks/use-dashboard";
 import { CustomersWithMostPurchasesChart } from "@/components/features/dashboard/charts/customers-with.most-purchases";
 import { SalesAndPointsDistributionChart } from "@/components/features/dashboard/charts/sales-and-points-distribution";
 import { TopCustomersByCategoryChart } from "@/components/features/dashboard/charts/top-customers-by-category-chart";
@@ -15,7 +14,6 @@ import { DashboardFiltersProvider } from "@/lib/contexts/dashboard-filters.conte
 import { TopCustomersSpendingChart } from "@/components/features/dashboard/charts/top-customers-spending-chart";
 
 export default function Page() {
-  const { data, isLoading, error } = useDashboard();
   return (
     <DashboardFiltersProvider>
       <SidebarProvider
@@ -35,37 +33,16 @@ export default function Page() {
               <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
                 <SectionCards />
                 <div className="px-4 lg:px-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <CustomersWithMostPurchasesChart
-                    data={
-                      data ?? {
-                        top_customers_by_category: [],
-                        start_date: "",
-                        end_date: "",
-                        family_product: 0,
-                        count_customers: 0,
-                      }
-                    }
-                  />
+                  <CustomersWithMostPurchasesChart />
                   <SalesAndPointsDistributionChart />
-
-                  {error && (
-                    <div className="text-red-500 px-4 py-2">{error}</div>
-                  )}
                 </div>
 
                 <div className="px-4 lg:px-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <TopCustomersByCategoryChart />
                   <TopCustomersNextPurchaseChart />
-
-                  {error && (
-                    <div className="text-red-500 px-4 py-2">{error}</div>
-                  )}
                 </div>
                 <div className="px-4 lg:px-6  grid grid-cols-1 gap-4">
                   <TopCustomersSpendingChart />
-                  {error && (
-                    <div className="text-red-500 px-4 py-2">{error}</div>
-                  )}
                 </div>
               </div>
             </div>

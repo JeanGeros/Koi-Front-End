@@ -35,17 +35,7 @@ export default function Page() {
               <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
                 <SectionCards />
                 <div className="px-4 lg:px-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <CustomersWithMostPurchasesChart
-                    data={
-                      data ?? {
-                        top_customers_by_category: [],
-                        start_date: "",
-                        end_date: "",
-                        family_product: 0,
-                        count_customers: 0,
-                      }
-                    }
-                  />
+                  <CustomersWithMostPurchasesChart />
                   <SalesAndPointsDistributionChart />
 
                   {error && (

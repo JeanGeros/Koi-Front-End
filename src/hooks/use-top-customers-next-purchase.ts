@@ -52,7 +52,7 @@ export function useTopCustomersNextPurchase(
     params: queryParams,
     defaultErrorMessage: 'Error al cargar top clientes para próxima compra',
   })
-
+  console.log(data)
   return { data, isLoading, error, refetch }
 }
 
