@@ -2,16 +2,11 @@
 
 import { useState } from "react";
 import {
-  IconTrendingDown,
   IconTrendingUp,
   IconAlertTriangle,
   IconChartBar,
   IconTarget,
   IconMoneybag,
-  IconCrown,
-  IconRefresh,
-  IconCalendar,
-  IconDiamond,
 } from "@tabler/icons-react";
 import { useAdvancedKPIs } from "@/hooks/use-advanced-kpis";
 import { useKPICards } from "@/hooks/use-kpi-cards";
@@ -40,22 +35,34 @@ import {
 import {
   formatCurrencyShort,
   formatNumber,
-  formatCurrency,
 } from "@/lib/utils/formatters";
 import {
   getDefaultEndDate,
   getDefaultStartDate,
 } from "@/lib/utils/date-helpers";
+import { getFamiliesAsOptions, getFamilyName } from "@/lib/constants/product-families";
+import { convertSucursalToSalesChannel } from "@/lib/utils/filter-helpers";
 
 export function SectionCards() {
   const { filters, updateFilters } = useDashboardFilters();
+  
+  // Convertir sucursal (number) a sales_channel (string)
+  // sales_channel: '0'=Internet, '1'=Casa Matriz, '2'=Sucursal, '3'=Outdoors, '4'=TodoHogar
+  const salesChannel = convertSucursalToSalesChannel(filters.sucursal);
+  
   // ✅ Clean Architecture: Leer del contexto (Presentation Layer) y pasar explícitamente
-  const { data: kpis, isLoading, error } = useAdvancedKPIs(filters);
+  const { data: kpis, isLoading, error } = useAdvancedKPIs({
+    ...filters,
+    sales_channel: salesChannel,
+  });
   const {
     data: kpiCards,
     isLoading: isLoadingKPICards,
     error: errorKPICards,
-  } = useKPICards(filters);
+  } = useKPICards({
+    ...filters,
+    sales_channel: salesChannel,
+  });
 
   // Combinar estados de carga y errores
   const isLoadingAll = isLoading || isLoadingKPICards;
@@ -70,12 +77,15 @@ export function SectionCards() {
   const [selectedFamily, setSelectedFamily] = useState<string>(
     () => filters.family_product?.toString() || "all"
   );
-
+  const [selectedSucursal, setSelectedSucursal] = useState<string>(
+    () => filters.sucursal?.toString() || "all"
+  );
   const handleApplyFilters = () => {
     const newFilters: {
       start_date?: string;
       end_date?: string;
       family_product?: number | null;
+      sucursal?: number | null;
     } = {};
 
     // Usar las fechas seleccionadas, o las del contexto, o las predeterminadas
@@ -89,10 +99,39 @@ export function SectionCards() {
       newFilters.family_product = null;
     }
 
+    if (selectedSucursal && selectedSucursal !== "all") {
+      newFilters.sucursal = parseInt(selectedSucursal, 10);
+    } else {
+      newFilters.sucursal = null;
+    }
+
     // Actualizar el contexto de filtros que será usado por todos los componentes
     // Esto también guardará en localStorage automáticamente
     updateFilters(newFilters);
   };
+
+  const sucursalesAsOptions = [
+    {
+      id: 0,
+      name: "Internet",
+    },  
+    {
+      id: 1,
+      name: "Casa Matriz",
+    },
+    {
+      id: 2,
+      name: "Sucursal",
+    },
+    {
+      id: 3,
+      name: "Outdoors",
+    },
+    {
+      id: 4,
+      name: "TodoHogar",
+    },
+  ];
 
   if (hasError) {
     return (
@@ -130,9 +169,9 @@ export function SectionCards() {
         </div>
       ) : kpis && kpiCards ? (
         <>
-          <div className="grid md:grid-cols-2 grid-cols-1 gap-4 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+          <div className="w-full flex flex-wrap gap-4  *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs ">
             {/* FILTROS */}
-            <Card className="@container/card @xl/main:col-span-2">
+            <Card className="w-auto">
               <CardHeader>
                 <CardTitle className="text-2xl font-bold text-neutral-700 dark:text-white">
                   Filtros
@@ -173,19 +212,37 @@ export function SectionCards() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todas</SelectItem>
-                      <SelectItem value="1">Familia 1</SelectItem>
-                      <SelectItem value="2">Familia 2</SelectItem>
-                      <SelectItem value="family3">Familia 3</SelectItem>
-                      <SelectItem value="4">Familia 4</SelectItem>
-                      <SelectItem value="5">Familia 5</SelectItem>
-                      <SelectItem value="6">Familia 6</SelectItem>
-                      <SelectItem value="7">Familia 7</SelectItem>
-                      <SelectItem value="8">Familia 8</SelectItem>
-                      <SelectItem value="9">Familia 9</SelectItem>
-                      <SelectItem value="22">Familia 22</SelectItem>
+                      {getFamiliesAsOptions().map((family) => (
+                        <SelectItem key={family.value} value={family.value}>
+                          {family.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="sucursal">Sucursal</Label>
+                  <Select
+                    value={selectedSucursal}
+                    onValueChange={setSelectedSucursal}
+                  >
+                    <SelectTrigger id="sucursal" className="w-[180px]">
+                      <SelectValue placeholder="Todas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      {sucursalesAsOptions.map((sucursal) => (
+                        <SelectItem
+                          key={sucursal.id}
+                          value={sucursal.id.toString()}
+                        >
+                          {sucursal.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="flex items-end">
                   <Button onClick={handleApplyFilters} disabled={isLoadingAll}>
                     {isLoadingAll ? "Cargando..." : "Aplicar Filtros"}
@@ -195,7 +252,7 @@ export function SectionCards() {
             </Card>
 
             {/* Metadata del Período */}
-            <Card className="@container/card @xl/main:col-span-2">
+            <Card className="w-auto">
               <CardHeader>
                 <CardTitle className="text-2xl font-bold text-neutral-700 dark:text-white">
                   Período de Análisis
@@ -214,7 +271,17 @@ export function SectionCards() {
                   <p className="text-xs text-muted-foreground">
                     Categoria de Familia
                   </p>
-                  <p className="font-medium text-center">{selectedFamily}</p>
+                  <p className="font-medium text-center">
+                    {selectedFamily === "all"
+                      ? "Todas"
+                      : getFamilyName(parseInt(selectedFamily, 10))}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Sucursal</p>
+                  <p className="font-medium">{selectedFamily === "all"
+                      ? "Todas"
+                      : sucursalesAsOptions.find(sucursal => sucursal.id.toString())?.name}</p>
                 </div>
               </CardContent>
             </Card>
@@ -318,8 +385,7 @@ export function SectionCards() {
             </Card>
           </div>
           {/* Fila 1: Métricas de Alerta */}
-          <div className="grid md:grid-cols-2 grid-cols-1 gap-4 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-            {/* KPI 1: Churn */}
+          {/* <div className="grid md:grid-cols-2 grid-cols-1 gap-4 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
             <Card className="@container/card">
               <CardHeader>
                 <CardDescription className="flex items-center gap-2 dark:text-white">
@@ -349,7 +415,6 @@ export function SectionCards() {
               </CardFooter>
             </Card>
 
-            {/* KPI 2: Redención de Puntos */}
             <Card className="@container/card">
               <CardHeader>
                 <CardDescription className="flex items-center gap-2 dark:text-white">
@@ -384,7 +449,6 @@ export function SectionCards() {
               </CardFooter>
             </Card>
 
-            {/* KPI 3: Mono-Categoría */}
             <Card className="@container/card">
               <CardHeader>
                 <CardDescription className="flex items-center gap-2 dark:text-white ">
@@ -412,7 +476,6 @@ export function SectionCards() {
               </CardFooter>
             </Card>
 
-            {/* KPI 4: Potencial Cross-Sell */}
             <Card className="@container/card">
               <CardHeader>
                 <CardDescription className="flex items-center gap-2 dark:text-white">
@@ -444,7 +507,7 @@ export function SectionCards() {
                 </div>
               </CardFooter>
             </Card>
-          </div>
+          </div> */}
         </>
       ) : null}
     </div>

@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/chart";
 import { formatNumber } from "@/lib/utils/formatters";
 import { Skeleton } from "@/components/ui/skeleton";
+import { convertSucursalToSalesChannel } from "@/lib/utils/filter-helpers";
 
 export const description = "Top clientes para próxima compra";
 
@@ -34,6 +35,10 @@ const chartConfig = {
 export function TopCustomersNextPurchaseChart() {
   // ✅ Clean Architecture: Leer del contexto (Presentation Layer) y pasar explícitamente
   const { filters } = useDashboardFilters();
+  
+  // sales_channel: '0'=Internet, '1'=Casa Matriz, '2'=Sucursal, '3'=Outdoors, '4'=TodoHogar
+  const salesChannel = convertSucursalToSalesChannel(filters.sucursal);
+  
   const { data, isLoading, error } = useTopCustomersNextPurchase({
     start_date: filters.start_date,
     end_date: filters.end_date,
@@ -45,6 +50,7 @@ export function TopCustomersNextPurchaseChart() {
       min_purchases: filters.min_purchases,
     }),
     ...(filters.limit !== undefined && { limit: filters.limit }),
+    sales_channel: salesChannel,
   });
   if (isLoading) {
     return (
@@ -72,7 +78,7 @@ export function TopCustomersNextPurchaseChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-neutral-700">
+          <CardTitle className="text-2xl font-bold text-neutral-700 dark:text-white">
             Top Clientes para Próxima Compra
           </CardTitle>
           <CardDescription>Error al cargar datos</CardDescription>
@@ -90,13 +96,13 @@ export function TopCustomersNextPurchaseChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-neutral-700">
+          <CardTitle className="text-2xl font-bold text-neutral-700 dark:text-white">
             Top Clientes para Próxima Compra
           </CardTitle>
           <CardDescription>No hay datos disponibles</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[320px] w-full flex items-center justify-center text-muted-foreground">
+          <div className="h-[320px] w-full flex text-lg dark:text-white items-center justify-center text-muted-foreground">
             No se encontraron clientes
           </div>
         </CardContent>

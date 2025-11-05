@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/chart";
 import { formatNumber } from "@/lib/utils/formatters";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getFamilyName } from "@/lib/constants/product-families";
+import { convertSucursalToSalesChannel } from "@/lib/utils/filter-helpers";
 
 const chartConfig = {
   cantidad_compras: {
@@ -29,11 +31,17 @@ const chartConfig = {
 export function CustomersWithMostPurchasesChart() {
   // ✅ Clean Architecture: Leer del contexto (Presentation Layer) y pasar explícitamente
   const { filters } = useDashboardFilters();
+
+  // Convertir sucursal (number) a sales_channel (string)
+  // sales_channel: '0'=Internet, '1'=Casa Matriz, '2'=Sucursal, '3'=Outdoors, '4'=TodoHogar
+  const salesChannel = convertSucursalToSalesChannel(filters.sucursal);
+
   const { data, isLoading, error } = useTopCustomersByCategory({
     start_date: filters.start_date,
     end_date: filters.end_date,
     family_product: filters.family_product || undefined,
     count_customers: filters.limit || undefined,
+    sales_channel: salesChannel,
   });
 
   // Si está cargando, mostrar skeleton
@@ -91,7 +99,7 @@ export function CustomersWithMostPurchasesChart() {
           </CardDescription>
         </CardHeader>
         <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-          <div className="h-[320px] w-full flex items-center justify-center text-muted-foreground">
+          <div className="h-[320px] w-full flex items-center text-lg justify-center text-muted-foreground dark:text-white">
             No se encontraron clientes con compras
           </div>
         </CardContent>
@@ -114,7 +122,7 @@ export function CustomersWithMostPurchasesChart() {
         </CardTitle>
         <CardDescription>
           Total de compras por cliente
-          {data.family_product ? ` en la categoría ${data.family_product}` : ""}
+          {data.family_product ? ` en la categoría ${getFamilyName(data.family_product)}` : ""}
         </CardDescription>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">

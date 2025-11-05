@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/chart";
 import { formatNumber, formatCurrency } from "@/lib/utils/formatters";
 import { Skeleton } from "@/components/ui/skeleton";
+import { convertSucursalToSalesChannel } from "@/lib/utils/filter-helpers";
 
 const chartConfig = {
   casa_matriz: {
@@ -38,9 +39,15 @@ const chartConfig = {
 
 export function TopCustomersByCategoryChart() {
   const { filters } = useDashboardFilters();
+  
+  // Convertir sucursal (number) a sales_channel (string)
+  // sales_channel: '0'=Internet, '1'=Casa Matriz, '2'=Sucursal, '3'=Outdoors, '4'=TodoHogar
+  const salesChannel = convertSucursalToSalesChannel(filters.sucursal);
+  
   const { data, isLoading, error } = useSalesByChannel({
     start_date: filters.start_date,
     end_date: filters.end_date,
+    sales_channel: salesChannel,
   });
 
   // Si está cargando, mostrar skeleton
@@ -98,7 +105,7 @@ export function TopCustomersByCategoryChart() {
           </CardDescription>
         </CardHeader>
         <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6 pb-0">
-          <div className="h-[250px] w-full flex items-center justify-center text-muted-foreground">
+          <div className="h-[250px] w-full flex items-center text-lg dark:text-white justify-center text-muted-foreground">
             No se encontraron ventas para el período seleccionado
           </div>
         </CardContent>

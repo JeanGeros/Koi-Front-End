@@ -27,8 +27,9 @@ interface UseTopCustomersByCategoryReturn {
 
 /**
  * Hook personalizado para obtener top clientes por categoría
- * @param params - Parámetros de la query (start_date, end_date, family_product, count_customers)
+ * @param params - Parámetros de la query (start_date, end_date, family_product, count_customers, sales_channel)
  *                  Si no se proveen start_date/end_date, se usan las fechas predeterminadas
+ *                  sales_channel: '0'=Internet, '1'=Casa Matriz, '2'=Sucursal, '3'=Outdoors, '4'=TodoHogar
  * @returns Objeto con data, isLoading, error, y función refetch
  */
 export function useTopCustomersByCategory(
@@ -42,6 +43,7 @@ export function useTopCustomersByCategory(
       end_date: params?.end_date || defaults.end_date,
       ...(params?.family_product !== undefined && { family_product: params.family_product }),
       ...(params?.count_customers !== undefined && { count_customers: params.count_customers }),
+      ...(params?.sales_channel !== undefined && { sales_channel: params.sales_channel }),
     }
   }, [params])
 

@@ -80,4 +80,5 @@ export interface AdvancedKPIsParams {
   start_date?: string
   end_date?: string
   exclude_email?: string
+  sales_channel?: string
 }

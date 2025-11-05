@@ -36,6 +36,7 @@ export type PropsTopCustomersByCategory = {
   end_date: string
   family_product: number
   count_customers: number
+  sales_channel?: string
 }
 
 export type TopCustomersByCategoryParams = {
@@ -43,6 +44,7 @@ export type TopCustomersByCategoryParams = {
   end_date?: string
   family_product?: number
   count_customers?: number
+  sales_channel?: string
 }
 
 // Sales by Channel API Types
@@ -79,6 +81,7 @@ export type SalesByChannelResponse = {
 export type SalesByChannelParams = {
   start_date?: string
   end_date?: string
+  sales_channel?: string
 }
 
 export type DashboardCustomerWithMostSales = {
@@ -127,6 +130,7 @@ export type PointsDistributionParams = {
   start_date?: string
   end_date?: string
   exclude_email?: string
+  sales_channel?: string
 }
 
 // Low Penetration High Value API Types
@@ -244,6 +248,7 @@ export type TopCustomersNextPurchaseParams = {
   family_product?: number
   min_purchases?: number
   limit?: number
+  sales_channel?: string
 }
 
 // Top Customers Spending API Types
@@ -288,6 +293,7 @@ export type TopCustomersSpendingParams = {
   end_date: string
   limit?: number
   exclude_email?: string
+  sales_channel?: string
 }
 
 // KPI Cards API Types
@@ -322,4 +328,5 @@ export type KPICardsResponse = {
 export type KPICardsParams = {
   start_date?: string
   end_date?: string
+  sales_channel?: string
 }

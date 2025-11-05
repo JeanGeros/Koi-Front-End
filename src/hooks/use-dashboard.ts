@@ -16,8 +16,9 @@ export function useDashboard() {
         setIsLoading(true)
         setError(null)
         const overview = await dashboardService.getTopCustomersByCategory()
-        console.log(overview)
-        if (mounted) setData(overview)
+        if (mounted) {
+          setData(overview)
+        }
       } catch (err) {
         if (mounted) setError(err instanceof Error ? err.message : 'Error desconocido')
       } finally {

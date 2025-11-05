@@ -8,7 +8,7 @@
  * - Fácil de testear (dependencias explícitas)
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 
 export interface UseApiQuerySimpleOptions<TParams, TResponse> {
   /**
@@ -78,10 +78,28 @@ export function useApiQuerySimple<TParams, TResponse>(
 
   // Ref para evitar race conditions
   const mountedRef = useRef(true);
+  
+  // Refs para almacenar valores actuales y evitar dependencias en closures
+  const fetchFnRef = useRef(fetchFn);
+  const paramsRef = useRef(params);
+  const defaultErrorMessageRef = useRef(defaultErrorMessage);
+  const enabledRef = useRef(enabled);
+  
+  // Actualizar refs cuando cambien los valores
+  fetchFnRef.current = fetchFn;
+  paramsRef.current = params;
+  defaultErrorMessageRef.current = defaultErrorMessage;
+  enabledRef.current = enabled;
+  
+  // Ref para almacenar los parámetros anteriores y comparar cambios
+  const prevParamsStringRef = useRef<string | null>(null);
+  
+  // Serializar parámetros para comparación (solo recalcula si params cambia)
+  const paramsString = useMemo(() => JSON.stringify(params), [params]);
 
-  // Función de fetch
+  // Función de fetch que usa refs (no depende de valores en el closure)
   const fetchData = useCallback(async () => {
-    if (!enabled) {
+    if (!enabledRef.current) {
       return;
     }
 
@@ -89,7 +107,8 @@ export function useApiQuerySimple<TParams, TResponse>(
       setIsLoading(true);
       setError(null);
 
-      const response = await fetchFn(params);
+      // Usar valores actuales desde refs
+      const response = await fetchFnRef.current(paramsRef.current);
 
       if (mountedRef.current) {
         setData(response);
@@ -97,7 +116,7 @@ export function useApiQuerySimple<TParams, TResponse>(
     } catch (err) {
       if (mountedRef.current) {
         const errorMessage =
-          err instanceof Error ? err.message : defaultErrorMessage;
+          err instanceof Error ? err.message : defaultErrorMessageRef.current;
         setError(errorMessage);
       }
     } finally {
@@ -105,7 +124,7 @@ export function useApiQuerySimple<TParams, TResponse>(
         setIsLoading(false);
       }
     }
-  }, [params, fetchFn, defaultErrorMessage, enabled]);
+  }, []); // Sin dependencias - usa refs para obtener valores actuales
 
   // Función de refetch
   const refetch = useCallback(async () => {
@@ -114,10 +133,15 @@ export function useApiQuerySimple<TParams, TResponse>(
 
   // Ejecutar fetch cuando cambien los parámetros
   useEffect(() => {
-    if (enabled) {
+    // Comparar si los parámetros realmente cambiaron
+    const paramsChanged = prevParamsStringRef.current !== paramsString;
+    
+    if (enabledRef.current && paramsChanged) {
+      prevParamsStringRef.current = paramsString;
       fetchData();
     }
-  }, [fetchData, enabled]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paramsString]); // Solo depende de paramsString, fetchData es estable
 
   // Cleanup
   useEffect(() => {

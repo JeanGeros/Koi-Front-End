@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/chart";
 import { formatNumber } from "@/lib/utils/formatters";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getFamilyName } from "@/lib/constants/product-families";
+import { convertSucursalToSalesChannel } from "@/lib/utils/filter-helpers";
 
 export const description = "An interactive area chart";
 
@@ -34,9 +36,15 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function SalesAndPointsDistributionChart() {
-  // ✅ Clean Architecture: Leer del contexto (Presentation Layer) y pasar explícitamente
   const { filters } = useDashboardFilters();
-  const { data, isLoading, error } = usePointsDistribution(filters);
+  
+  // sales_channel: '0'=Internet, '1'=Casa Matriz, '2'=Sucursal, '3'=Outdoors, '4'=TodoHogar
+  const salesChannel = convertSucursalToSalesChannel(filters.sucursal);
+
+  const { data, isLoading, error } = usePointsDistribution({
+    ...filters,
+    sales_channel: salesChannel,
+  });
 
   // Si no hay datos, mostrar loading o error
   if (isLoading) {
@@ -198,19 +206,27 @@ export function SalesAndPointsDistributionChart() {
                           <div className="grid gap-1.5">
                             {topCategories
                               .slice(0, 3)
-                              .map((category: any, index: number) => (
-                                <div
-                                  key={category.id || index}
-                                  className="flex items-center justify-between text-[11px]"
-                                >
-                                  <span className="text-muted-foreground truncate max-w-[160px]">
-                                    {category.name}
-                                  </span>
-                                  <span className="text-foreground font-mono font-medium tabular-nums ml-2">
-                                    {formatNumber(category.count || 0)}
-                                  </span>
-                                </div>
-                              ))}
+                              .map((category: any, index: number) => {
+                                // Si la categoría tiene un ID, usar getFamilyName para obtener el nombre
+                                // Si no, usar el nombre que viene del backend
+                                const categoryName = category.id 
+                                  ? getFamilyName(category.id) 
+                                  : (category.name || `Familia ${category.id || index}`);
+                                
+                                return (
+                                  <div
+                                    key={category.id || index}
+                                    className="flex items-center justify-between text-[11px]"
+                                  >
+                                    <span className="text-muted-foreground truncate max-w-[160px]">
+                                      {categoryName}
+                                    </span>
+                                    <span className="text-foreground font-mono font-medium tabular-nums ml-2">
+                                      {formatNumber(category.count || 0)}
+                                    </span>
+                                  </div>
+                                );
+                              })}
                           </div>
                         </div>
                       )}

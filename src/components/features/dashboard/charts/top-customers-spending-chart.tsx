@@ -18,6 +18,9 @@ import {
 import { formatNumber } from "@/lib/utils/formatters";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import { convertSucursalToSalesChannel } from '@/lib/utils/filter-helpers';
+
+
 export const description = "Top clientes por gasto total";
 
 const chartConfig = {
@@ -34,6 +37,10 @@ const chartConfig = {
 export function TopCustomersSpendingChart() {
   // ✅ Clean Architecture: Leer del contexto (Presentation Layer) y pasar explícitamente
   const { filters } = useDashboardFilters();
+  
+  // sales_channel: '0'=Internet, '1'=Casa Matriz, '2'=Sucursal, '3'=Outdoors, '4'=TodoHogar
+  const salesChannel = convertSucursalToSalesChannel(filters.sucursal);
+  
   // TopCustomersSpendingParams requiere start_date y end_date como obligatorios
   const { data, isLoading, error } = useTopCustomersSpending(
     filters.start_date && filters.end_date
@@ -41,6 +48,7 @@ export function TopCustomersSpendingChart() {
           start_date: filters.start_date,
           end_date: filters.end_date,
           ...(filters.limit !== undefined && { limit: filters.limit }),
+          sales_channel: salesChannel,
         }
       : undefined
   );
@@ -89,13 +97,13 @@ export function TopCustomersSpendingChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-neutral-700 ">
+          <CardTitle className="text-2xl font-bold text-neutral-700 dark:text-white">
             Top Clientes por Gasto Total
           </CardTitle>
           <CardDescription>No hay datos disponibles</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[320px] w-full flex items-center justify-center text-muted-foreground">
+          <div className="h-[320px] w-full flex text-lg dark:text-white items-center justify-center text-muted-foreground">
             No se encontraron clientes
           </div>
         </CardContent>

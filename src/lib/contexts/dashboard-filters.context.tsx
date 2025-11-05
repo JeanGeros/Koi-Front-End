@@ -11,6 +11,7 @@ import React, {
 import { getDefaultDates } from "@/lib/utils/date-helpers";
 
 export interface DashboardFilters {
+  sucursal?: number | null;
   start_date?: string;
   end_date?: string;
   family_product?: number | null;

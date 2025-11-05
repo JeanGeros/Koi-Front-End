@@ -28,8 +28,9 @@ interface UseTopCustomersNextPurchaseReturn {
 /**
  * Hook personalizado para obtener top clientes para próxima compra (1/3)
  * Muestra clientes individuales con más potencial para realizar su primera o tercera compra
- * @param params - Parámetros de la query (start_date, end_date, family_product, min_purchases, limit)
+ * @param params - Parámetros de la query (start_date, end_date, family_product, min_purchases, limit, sales_channel)
  *                  Si no se proveen start_date/end_date, se usan las fechas predeterminadas
+ *                  sales_channel: '0'=Internet, '1'=Casa Matriz, '2'=Sucursal, '3'=Outdoors, '4'=TodoHogar
  * @returns Objeto con data, isLoading, error, y función refetch
  */
 export function useTopCustomersNextPurchase(
@@ -44,6 +45,7 @@ export function useTopCustomersNextPurchase(
       ...(params?.family_product !== undefined && { family_product: params.family_product }),
       ...(params?.min_purchases !== undefined && { min_purchases: params.min_purchases }),
       ...(params?.limit !== undefined && { limit: params.limit }),
+      ...(params?.sales_channel !== undefined && { sales_channel: params.sales_channel }),
     }
   }, [params])
 
@@ -52,7 +54,6 @@ export function useTopCustomersNextPurchase(
     params: queryParams,
     defaultErrorMessage: 'Error al cargar top clientes para próxima compra',
   })
-  console.log(data)
   return { data, isLoading, error, refetch }
 }
 
