@@ -32,7 +32,6 @@ export function CustomersWithMostPurchasesChart() {
   // ✅ Clean Architecture: Leer del contexto (Presentation Layer) y pasar explícitamente
   const { filters } = useDashboardFilters();
 
-  // Convertir sucursal (number) a sales_channel (string)
   // sales_channel: '0'=Internet, '1'=Casa Matriz, '2'=Sucursal, '3'=Outdoors, '4'=TodoHogar
   const salesChannel = convertSucursalToSalesChannel(filters.sucursal);
 

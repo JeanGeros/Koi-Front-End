@@ -2,7 +2,7 @@
  * Configuración general de la aplicación
  */
 
-const DEFAULT_API_BASE_URL = "http://localhost:8000"
+const DEFAULT_API_BASE_URL = "https://koi.casalicia.cl"
 
 export const config = {
   // API Configuration
