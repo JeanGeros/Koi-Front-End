@@ -8,7 +8,10 @@ export const config = {
   // API Configuration
   api: {
     baseUrl:
-      DEFAULT_API_BASE_URL,
+      process.env.NEXT_PUBLIC_API_BASE_URL &&
+      process.env.NEXT_PUBLIC_API_BASE_URL.length > 0
+        ? process.env.NEXT_PUBLIC_API_BASE_URL
+        : DEFAULT_API_BASE_URL,
     timeout: 30000, // 30 segundos
   },
 
