@@ -22,7 +22,6 @@ interface UseTopCustomersNextPurchaseReturn {
   data: TopCustomersNextPurchaseResponse | null
   isLoading: boolean
   error: string | null
-  refetch: () => Promise<void>
 }
 
 /**
@@ -49,11 +48,11 @@ export function useTopCustomersNextPurchase(
     }
   }, [params])
 
-  const { data, isLoading, error, refetch } = useApiQuerySimple<TopCustomersNextPurchaseParams, TopCustomersNextPurchaseResponse>({
+  const { data, isLoading, error } = useApiQuerySimple<TopCustomersNextPurchaseParams, TopCustomersNextPurchaseResponse>({
     fetchFn: dashboardService.getTopCustomersNextPurchase,
     params: queryParams,
     defaultErrorMessage: 'Error al cargar top clientes para próxima compra',
   })
-  return { data, isLoading, error, refetch }
+  return { data, isLoading, error }
 }
 

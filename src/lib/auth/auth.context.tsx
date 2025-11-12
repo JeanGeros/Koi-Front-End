@@ -24,7 +24,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    */
   const loadUser = useCallback(async () => {
     const hasTokens = authStorage.hasTokens()
-
     if (!hasTokens) {
       setIsLoading(false)
       return
@@ -35,7 +34,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(userData)
     } catch (error) {
       // Si falla, limpiar tokens (probablemente expirados o inválidos)
-      console.error("Error al cargar usuario:", error)
       authStorage.clearTokens()
       setUser(null)
     } finally {

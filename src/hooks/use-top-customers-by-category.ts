@@ -22,7 +22,6 @@ interface UseTopCustomersByCategoryReturn {
   data: PropsTopCustomersByCategory | null
   isLoading: boolean
   error: string | null
-  refetch: () => Promise<void>
 }
 
 /**
@@ -47,10 +46,10 @@ export function useTopCustomersByCategory(
     }
   }, [params])
 
-  const { data, isLoading, error, refetch } = useApiQuerySimple<TopCustomersByCategoryParams, PropsTopCustomersByCategory>({
+  const { data, isLoading, error } = useApiQuerySimple<TopCustomersByCategoryParams, PropsTopCustomersByCategory>({
     fetchFn: dashboardService.getTopCustomersByCategory,
     params: queryParams,
     defaultErrorMessage: 'Error al cargar top clientes por categoría',
   })
-  return { data, isLoading, error, refetch }
+  return { data, isLoading, error }
 }

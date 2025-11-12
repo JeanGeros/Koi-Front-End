@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   IconTrendingUp,
   IconAlertTriangle,
@@ -8,7 +8,6 @@ import {
   IconTarget,
   IconMoneybag,
 } from "@tabler/icons-react";
-import { useAdvancedKPIs } from "@/hooks/use-advanced-kpis";
 import { useKPICards } from "@/hooks/use-kpi-cards";
 import { useDashboardFilters } from "@/lib/contexts/dashboard-filters.context";
 
@@ -41,32 +40,28 @@ import {
   getDefaultStartDate,
 } from "@/lib/utils/date-helpers";
 import { getFamiliesAsOptions, getFamilyName } from "@/lib/constants/product-families";
-import { convertSucursalToSalesChannel } from "@/lib/utils/filter-helpers";
 
 export function SectionCards() {
   const { filters, updateFilters } = useDashboardFilters();
-  
-  // Convertir sucursal (number) a sales_channel (string)
-  // sales_channel: '0'=Internet, '1'=Casa Matriz, '2'=Sucursal, '3'=Outdoors, '4'=TodoHogar
-  const salesChannel = convertSucursalToSalesChannel(filters.sucursal);
-  
+
   // ✅ Clean Architecture: Leer del contexto (Presentation Layer) y pasar explícitamente
-  const { data: kpis, isLoading, error } = useAdvancedKPIs({
-    ...filters,
-    sales_channel: salesChannel,
-  });
+  // Memoizar los parámetros para evitar re-renders innecesarios
+  const kpiCardsParams = useMemo(() => ({
+    start_date: filters.start_date,
+    end_date: filters.end_date,
+    sales_channel: filters.sales_channel,
+    family_product: filters.family_product,
+  }), [filters.start_date, filters.end_date, filters.sales_channel, filters.family_product]);
+
   const {
     data: kpiCards,
     isLoading: isLoadingKPICards,
     error: errorKPICards,
-  } = useKPICards({
-    ...filters,
-    sales_channel: salesChannel,
-  });
+  } = useKPICards(kpiCardsParams);
 
-  // Combinar estados de carga y errores
-  const isLoadingAll = isLoading || isLoadingKPICards;
-  const hasError = error || errorKPICards;
+  // Estados de carga y errores
+  const isLoadingAll = isLoadingKPICards;
+  const hasError = errorKPICards;
 
   // Inicializar los campos de fecha con los valores del contexto (desde cookies o valores predeterminados)
   // Usamos useState con función inicializadora para evitar actualizaciones innecesarias
@@ -78,14 +73,14 @@ export function SectionCards() {
     () => filters.family_product?.toString() || "all"
   );
   const [selectedSucursal, setSelectedSucursal] = useState<string>(
-    () => filters.sucursal?.toString() || "all"
+    () => filters.sales_channel?.toString() || "all"
   );
   const handleApplyFilters = () => {
     const newFilters: {
       start_date?: string;
       end_date?: string;
       family_product?: number | null;
-      sucursal?: number | null;
+      sales_channel?: number | undefined;
     } = {};
 
     // Usar las fechas seleccionadas, o las del contexto, o las predeterminadas
@@ -96,13 +91,13 @@ export function SectionCards() {
     if (selectedFamily && selectedFamily !== "all") {
       newFilters.family_product = parseInt(selectedFamily, 10);
     } else {
-      newFilters.family_product = null;
+      newFilters.family_product = undefined;
     }
 
     if (selectedSucursal && selectedSucursal !== "all") {
-      newFilters.sucursal = parseInt(selectedSucursal, 10);
+      newFilters.sales_channel = parseInt(selectedSucursal, 10);
     } else {
-      newFilters.sucursal = null;
+      newFilters.sales_channel = undefined;
     }
 
     // Actualizar el contexto de filtros que será usado por todos los componentes
@@ -142,7 +137,7 @@ export function SectionCards() {
               <IconAlertTriangle className="size-5" />
               <p>
                 Error al cargar datos:{" "}
-                {error || errorKPICards || "Error desconocido"}
+                {errorKPICards || "Error desconocido"}
               </p>
             </div>
           </CardContent>
@@ -167,7 +162,7 @@ export function SectionCards() {
             </Card>
           ))}
         </div>
-      ) : kpis && kpiCards ? (
+      ) : kpiCards ? (
         <>
           <div className="w-full flex flex-wrap gap-4  *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs ">
             {/* FILTROS */}
@@ -221,7 +216,7 @@ export function SectionCards() {
                   </Select>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="sucursal">Sucursal</Label>
+                  <Label htmlFor="sucursal">Tienda</Label>
                   <Select
                     value={selectedSucursal}
                     onValueChange={setSelectedSucursal}
@@ -278,7 +273,7 @@ export function SectionCards() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Sucursal</p>
+                  <p className="text-xs text-muted-foreground">Tienda</p>
                   <p className="font-medium">{selectedFamily === "all"
                       ? "Todas"
                       : sucursalesAsOptions.find(sucursal => sucursal.id.toString())?.name}</p>

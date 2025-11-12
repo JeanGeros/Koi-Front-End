@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from "recharts";
 
 import { useTopCustomersByCategory } from "@/hooks/use-top-customers-by-category";
@@ -19,7 +20,7 @@ import {
 import { formatNumber } from "@/lib/utils/formatters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getFamilyName } from "@/lib/constants/product-families";
-import { convertSucursalToSalesChannel } from "@/lib/utils/filter-helpers";
+import { generateFilterDescription } from "@/lib/utils/filter-helpers";
 
 const chartConfig = {
   cantidad_compras: {
@@ -32,16 +33,16 @@ export function CustomersWithMostPurchasesChart() {
   // ✅ Clean Architecture: Leer del contexto (Presentation Layer) y pasar explícitamente
   const { filters } = useDashboardFilters();
 
-  // sales_channel: '0'=Internet, '1'=Casa Matriz, '2'=Sucursal, '3'=Outdoors, '4'=TodoHogar
-  const salesChannel = convertSucursalToSalesChannel(filters.sucursal);
-
-  const { data, isLoading, error } = useTopCustomersByCategory({
+  // Memoizar los parámetros para evitar re-renders innecesarios
+  const queryParams = useMemo(() => ({
     start_date: filters.start_date,
     end_date: filters.end_date,
     family_product: filters.family_product || undefined,
     count_customers: filters.limit || undefined,
-    sales_channel: salesChannel,
-  });
+    sales_channel: filters.sales_channel,
+  }), [filters.start_date, filters.end_date, filters.family_product, filters.limit, filters.sales_channel]);
+
+  const { data, isLoading, error } = useTopCustomersByCategory(queryParams);
 
   // Si está cargando, mostrar skeleton
   if (isLoading) {
@@ -119,9 +120,18 @@ export function CustomersWithMostPurchasesChart() {
         <CardTitle className="text-2xl font-bold text-neutral-700 dark:text-white">
           Clientes con más compras
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="whitespace-pre-line">
           Total de compras por cliente
-          {data.family_product ? ` en la categoría ${getFamilyName(data.family_product)}` : ""}
+          {generateFilterDescription(
+            {
+              family_product: filters.family_product || undefined,
+              sales_channel: filters.sales_channel,
+              start_date: filters.start_date,
+              end_date: filters.end_date,
+              min_purchases: filters.min_purchases,
+            },
+            filters.family_product ? getFamilyName(filters.family_product) : undefined
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">

@@ -10,7 +10,6 @@ interface UseAdvancedKPIsReturn {
   data: AdvancedKPIsResponse | null
   isLoading: boolean
   error: string | null
-  refetch: () => Promise<void>
 }
 
 /**
@@ -32,11 +31,11 @@ export function useAdvancedKPIs(params?: AdvancedKPIsParams): UseAdvancedKPIsRet
     }
   }, [params])
 
-  const { data, isLoading, error, refetch } = useApiQuerySimple<AdvancedKPIsParams, AdvancedKPIsResponse>({
+  const { data, isLoading, error } = useApiQuerySimple<AdvancedKPIsParams, AdvancedKPIsResponse>({
     fetchFn: advancedKPIsService.getAdvancedKPIs,
     params: queryParams,
     defaultErrorMessage: 'Error al cargar KPIs avanzados',
   })
 
-  return { data, isLoading, error, refetch }
+  return { data, isLoading, error }
 }

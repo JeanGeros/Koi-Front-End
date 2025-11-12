@@ -11,7 +11,7 @@ import React, {
 import { getDefaultDates } from "@/lib/utils/date-helpers";
 
 export interface DashboardFilters {
-  sucursal?: number | null;
+  sales_channel?: number | undefined;
   start_date?: string;
   end_date?: string;
   family_product?: number | null;
@@ -107,6 +107,7 @@ function loadFiltersFromCache(): DashboardFilters {
         // Si las fechas guardadas están vacías, usar las predeterminadas
         start_date: parsed.start_date || getDefaultDates().start_date,
         end_date: parsed.end_date || getDefaultDates().end_date,
+        sales_channel: parsed.sales_channel,
       };
     }
   } catch (error) {

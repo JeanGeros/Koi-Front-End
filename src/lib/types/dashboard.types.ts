@@ -36,7 +36,7 @@ export type PropsTopCustomersByCategory = {
   end_date: string
   family_product: number
   count_customers: number
-  sales_channel?: string
+  sales_channel?: number
 }
 
 export type TopCustomersByCategoryParams = {
@@ -44,7 +44,7 @@ export type TopCustomersByCategoryParams = {
   end_date?: string
   family_product?: number
   count_customers?: number
-  sales_channel?: string
+  sales_channel?: number
 }
 
 // Sales by Channel API Types
@@ -81,7 +81,8 @@ export type SalesByChannelResponse = {
 export type SalesByChannelParams = {
   start_date?: string
   end_date?: string
-  sales_channel?: string
+  sales_channel?: number
+  family_product?: number | null
 }
 
 export type DashboardCustomerWithMostSales = {
@@ -130,7 +131,8 @@ export type PointsDistributionParams = {
   start_date?: string
   end_date?: string
   exclude_email?: string
-  sales_channel?: string
+  sales_channel?: number
+  family_product?: number | null
 }
 
 // Low Penetration High Value API Types
@@ -248,7 +250,7 @@ export type TopCustomersNextPurchaseParams = {
   family_product?: number
   min_purchases?: number
   limit?: number
-  sales_channel?: string
+  sales_channel?: number
 }
 
 // Top Customers Spending API Types
@@ -293,7 +295,8 @@ export type TopCustomersSpendingParams = {
   end_date: string
   limit?: number
   exclude_email?: string
-  sales_channel?: string
+  sales_channel?: number
+  family_product?: number | null
 }
 
 // KPI Cards API Types
@@ -328,5 +331,108 @@ export type KPICardsResponse = {
 export type KPICardsParams = {
   start_date?: string
   end_date?: string
-  sales_channel?: string
+  sales_channel?: number
+  family_product?: number | null
+}
+
+// Customers Table API Types
+export type CustomersTableTransactionMetrics = {
+  count: number
+  amount: number
+  items: number
+}
+
+export type CustomersTableSalesMetrics = {
+  count: number
+  amount: number
+  items: number
+  average: number
+}
+
+export type CustomersTableCustomer = {
+  rut: string
+  run: string
+  dv: string
+  nombre_completo: string
+  email: string
+  telefono: string
+  sales: CustomersTableSalesMetrics
+  returns: CustomersTableTransactionMetrics
+  invoices: CustomersTableTransactionMetrics
+  total_transactions: number
+  total_amount: number
+  total_items: number
+  top_category_id: number | null
+  top_category_amount: number | null
+  highlights: ("top_gastador" | "top_comprador" | "comprador_diverso")[]
+}
+
+export type CustomersTablePagination = {
+  page: number
+  pageSize: number
+  totalCustomers: number
+  totalPages: number
+  hasNext: boolean
+  hasPrevious: boolean
+}
+
+export type CustomersTableFilters = {
+  startDate: string
+  endDate: string
+  familyProduct: number | null
+  salesChannel: number | null
+  sortBy: "total_spending" | "total_purchases" | "avg_purchase"
+  sortOrder: "desc" | "asc"
+}
+
+export type CustomersTableSummarySales = {
+  totalAmount: number
+  totalCount: number
+  avgPerCustomer: number
+}
+
+export type CustomersTableSummaryReturns = {
+  totalAmount: number
+  totalCount: number
+}
+
+export type CustomersTableSummaryInvoices = {
+  totalAmount: number
+  totalCount: number
+}
+
+export type CustomersTableSummaryTotals = {
+  totalAmount: number
+  totalTransactions: number
+}
+
+export type CustomersTableSummary = {
+  totalCustomers: number
+  sales: CustomersTableSummarySales
+  returns: CustomersTableSummaryReturns
+  invoices: CustomersTableSummaryInvoices
+  totals: CustomersTableSummaryTotals
+}
+
+export type CustomersTablePerformance = {
+  executionTimeSeconds: number
+}
+
+export type CustomersTableResponse = {
+  customers: CustomersTableCustomer[]
+  pagination: CustomersTablePagination
+  filters: CustomersTableFilters
+  summary: CustomersTableSummary
+  performance: CustomersTablePerformance
+}
+
+export type CustomersTableParams = {
+  start_date?: string
+  end_date?: string
+  family_product?: number | null
+  sales_channel?: number
+  page?: number
+  page_size?: number
+  sort_by?: "total_spending" | "total_purchases" | "avg_purchase"
+  sort_order?: "desc" | "asc"
 }

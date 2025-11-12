@@ -25,7 +25,9 @@ import type {
   TopCustomersSpendingResponse,
   TopCustomersSpendingParams,
   KPICardsResponse,
-  KPICardsParams
+  KPICardsParams,
+  CustomersTableResponse,
+  CustomersTableParams
 } from "../types/dashboard.types"
 
 // Tipos de ejemplo (moverlos a types/ en producción)
@@ -145,5 +147,59 @@ export const dashboardService = {
       params,
       { revalidate: false }
     )
+  },
+
+  /**
+   * Obtiene la tabla de clientes con información detallada
+   * Incluye paginación, ordenamiento y filtros
+   * Sin caché - Datos siempre frescos
+   */
+  getCustomersTable: async (params?: CustomersTableParams): Promise<CustomersTableResponse> => {
+    return apiClient.get<CustomersTableResponse>(
+      API_ENDPOINTS.DASHBOARD.CUSTOMERS_TABLE,
+      params,
+      { revalidate: false }
+    )
+  },
+
+  /**
+   * Exporta la tabla de clientes a Excel
+   * Descarga un archivo .xlsx con los datos filtrados
+   */
+  exportCustomersTable: async (params?: CustomersTableParams): Promise<Blob> => {
+    const { config } = await import("../constants/config");
+    const { authStorage } = await import("../auth/auth.storage");
+    
+    // Construir URL con parámetros
+    const url = new URL(`${config.api.baseUrl}${API_ENDPOINTS.DASHBOARD.CUSTOMERS_TABLE_EXPORT}`);
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    // Obtener token de autenticación
+    const token = authStorage.getAccessToken();
+    if (!token) {
+      throw new Error("No hay token de autenticación disponible");
+    }
+
+    // Realizar petición para descargar el archivo
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error al exportar: ${response.status} - ${errorText}`);
+    }
+
+    // Retornar el blob del archivo
+    return await response.blob();
   },
 }

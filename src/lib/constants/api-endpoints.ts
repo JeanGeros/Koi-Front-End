@@ -25,6 +25,8 @@ export const API_ENDPOINTS = {
     POTENTIAL_BUYERS: "/api/dashboard/potential-buyers/",
     TOP_CUSTOMERS_SPENDING: "/api/dashboard/top-customers-spending/",
     KPI_CARDS: "/api/dashboard/kpi-cards/",
+    CUSTOMERS_TABLE: "/api/dashboard/customers-table/",
+    CUSTOMERS_TABLE_EXPORT: "/api/dashboard/customers-table/export/",
 
     STATS: "/api/dashboard/stats/",
     CHARTS: "/api/dashboard/charts/",

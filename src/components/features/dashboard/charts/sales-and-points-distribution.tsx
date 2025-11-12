@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
 import { usePointsDistribution } from "@/hooks/use-points-distribution";
@@ -20,7 +21,7 @@ import {
 import { formatNumber } from "@/lib/utils/formatters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getFamilyName } from "@/lib/constants/product-families";
-import { convertSucursalToSalesChannel } from "@/lib/utils/filter-helpers";
+import { generateFilterDescription } from "@/lib/utils/filter-helpers";
 
 export const description = "An interactive area chart";
 
@@ -37,14 +38,16 @@ const chartConfig = {
 
 export function SalesAndPointsDistributionChart() {
   const { filters } = useDashboardFilters();
-  
-  // sales_channel: '0'=Internet, '1'=Casa Matriz, '2'=Sucursal, '3'=Outdoors, '4'=TodoHogar
-  const salesChannel = convertSucursalToSalesChannel(filters.sucursal);
 
-  const { data, isLoading, error } = usePointsDistribution({
-    ...filters,
-    sales_channel: salesChannel,
-  });
+  // Memoizar los parámetros para evitar re-renders innecesarios
+  const queryParams = useMemo(() => ({
+    start_date: filters.start_date,
+    end_date: filters.end_date,
+    sales_channel: filters.sales_channel,
+    family_product: filters.family_product,
+  }), [filters.start_date, filters.end_date, filters.sales_channel, filters.family_product]);
+
+  const { data, isLoading, error } = usePointsDistribution(queryParams);
 
   // Si no hay datos, mostrar loading o error
   if (isLoading) {
@@ -96,10 +99,19 @@ export function SalesAndPointsDistributionChart() {
           Puntos Generados por Fecha
         </CardTitle>
         <CardDescription>
-          <span className="hidden @[540px]/card:block">
-            Total de puntos generados en el mes actual
+          <span className="hidden @[540px]/card:block whitespace-pre-line">
+            Total de puntos generados
+            {generateFilterDescription(
+              {
+                family_product: filters.family_product ?? undefined,
+                sales_channel: filters.sales_channel,
+                start_date: filters.start_date,
+                end_date: filters.end_date,
+                min_purchases: filters.min_purchases,
+              },
+              filters.family_product ? getFamilyName(filters.family_product) : undefined
+            )}
           </span>
-          <span className="@[540px]/card:hidden">Last 3 months</span>
         </CardDescription>
         <CardAction>
          
@@ -207,8 +219,6 @@ export function SalesAndPointsDistributionChart() {
                             {topCategories
                               .slice(0, 3)
                               .map((category: any, index: number) => {
-                                // Si la categoría tiene un ID, usar getFamilyName para obtener el nombre
-                                // Si no, usar el nombre que viene del backend
                                 const categoryName = category.id 
                                   ? getFamilyName(category.id) 
                                   : (category.name || `Familia ${category.id || index}`);

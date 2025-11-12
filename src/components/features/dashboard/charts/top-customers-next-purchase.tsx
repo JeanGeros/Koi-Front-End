@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, LabelList, XAxis } from "recharts";
 import { useTopCustomersNextPurchase } from "@/hooks/use-top-customers-next-purchase";
 import { useDashboardFilters } from "@/lib/contexts/dashboard-filters.context";
@@ -17,7 +18,8 @@ import {
 } from "@/components/ui/chart";
 import { formatNumber } from "@/lib/utils/formatters";
 import { Skeleton } from "@/components/ui/skeleton";
-import { convertSucursalToSalesChannel } from "@/lib/utils/filter-helpers";
+import { generateFilterDescription } from "@/lib/utils/filter-helpers";
+import { getFamilyName } from "@/lib/constants/product-families";
 
 export const description = "Top clientes para próxima compra";
 
@@ -35,11 +37,9 @@ const chartConfig = {
 export function TopCustomersNextPurchaseChart() {
   // ✅ Clean Architecture: Leer del contexto (Presentation Layer) y pasar explícitamente
   const { filters } = useDashboardFilters();
-  
-  // sales_channel: '0'=Internet, '1'=Casa Matriz, '2'=Sucursal, '3'=Outdoors, '4'=TodoHogar
-  const salesChannel = convertSucursalToSalesChannel(filters.sucursal);
-  
-  const { data, isLoading, error } = useTopCustomersNextPurchase({
+
+  // Memoizar los parámetros para evitar re-renders innecesarios
+  const queryParams = useMemo(() => ({
     start_date: filters.start_date,
     end_date: filters.end_date,
     ...(filters.family_product !== null &&
@@ -50,8 +50,10 @@ export function TopCustomersNextPurchaseChart() {
       min_purchases: filters.min_purchases,
     }),
     ...(filters.limit !== undefined && { limit: filters.limit }),
-    sales_channel: salesChannel,
-  });
+    sales_channel: filters.sales_channel,
+  }), [filters.start_date, filters.end_date, filters.family_product, filters.min_purchases, filters.limit, filters.sales_channel]);
+
+  const { data, isLoading, error } = useTopCustomersNextPurchase(queryParams);
   if (isLoading) {
     return (
       <Card>
@@ -130,24 +132,18 @@ export function TopCustomersNextPurchaseChart() {
         <CardTitle className="text-2xl font-bold text-neutral-700 dark:text-white ">
           Top Clientes para Próxima Compra
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="whitespace-pre-line">
           Clientes individuales con más potencial para realizar su segunda o
           tercera compra
-          {data.period && (
-            <>
-              {" "}
-              (
-              {new Date(data.period.startDate).toLocaleDateString("es-CL", {
-                month: "short",
-                day: "numeric",
-              })}{" "}
-              -{" "}
-              {new Date(data.period.endDate).toLocaleDateString("es-CL", {
-                month: "short",
-                day: "numeric",
-              })}
-              )
-            </>
+          {generateFilterDescription(
+            {
+              family_product: filters.family_product ?? undefined,
+              sales_channel: filters.sales_channel,
+              start_date: filters.start_date,
+              end_date: filters.end_date,
+              min_purchases: filters.min_purchases,
+            },
+            filters.family_product ? getFamilyName(filters.family_product) : undefined
           )}
         </CardDescription>
       </CardHeader>

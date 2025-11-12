@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { PieChart, Pie, Cell } from "recharts";
 
 import { useSalesByChannel } from "@/hooks/use-sales-by-channel";
@@ -20,7 +21,8 @@ import {
 } from "@/components/ui/chart";
 import { formatNumber, formatCurrency } from "@/lib/utils/formatters";
 import { Skeleton } from "@/components/ui/skeleton";
-import { convertSucursalToSalesChannel } from "@/lib/utils/filter-helpers";
+import { generateFilterDescription } from "@/lib/utils/filter-helpers";
+import { getFamilyName } from "@/lib/constants/product-families";
 
 const chartConfig = {
   casa_matriz: {
@@ -39,16 +41,16 @@ const chartConfig = {
 
 export function TopCustomersByCategoryChart() {
   const { filters } = useDashboardFilters();
-  
-  // Convertir sucursal (number) a sales_channel (string)
-  // sales_channel: '0'=Internet, '1'=Casa Matriz, '2'=Sucursal, '3'=Outdoors, '4'=TodoHogar
-  const salesChannel = convertSucursalToSalesChannel(filters.sucursal);
-  
-  const { data, isLoading, error } = useSalesByChannel({
+
+  // Memoizar los parámetros para evitar re-renders innecesarios
+  const queryParams = useMemo(() => ({
     start_date: filters.start_date,
     end_date: filters.end_date,
-    sales_channel: salesChannel,
-  });
+    sales_channel: filters.sales_channel,
+    family_product: filters.family_product,
+  }), [filters.start_date, filters.end_date, filters.sales_channel, filters.family_product]);
+
+  const { data, isLoading, error } = useSalesByChannel(queryParams);
 
   // Si está cargando, mostrar skeleton
   if (isLoading) {
@@ -56,7 +58,7 @@ export function TopCustomersByCategoryChart() {
       <Card className="@container/card">
         <CardHeader className="items-center pb-4">
           <CardTitle className="text-2xl font-bold text-neutral-700 dark:text-white">
-            Ventas por Sucursales
+            Ventas por Tiendas
           </CardTitle>
           <CardDescription>Cargando datos...</CardDescription>
         </CardHeader>
@@ -79,7 +81,7 @@ export function TopCustomersByCategoryChart() {
       <Card className="@container/card">
         <CardHeader className="items-center pb-4">
           <CardTitle className="text-2xl font-bold text-neutral-700 dark:text-white">
-            Ventas por Sucursales
+            Ventas por Tiendas
           </CardTitle>
           <CardDescription>Error al cargar datos</CardDescription>
         </CardHeader>
@@ -98,7 +100,7 @@ export function TopCustomersByCategoryChart() {
       <Card className="@container/card">
         <CardHeader className="items-center pb-4">
           <CardTitle className="text-2xl font-bold text-neutral-700 dark:text-white">
-            Ventas por Sucursales
+            Ventas por Tiendas
           </CardTitle>
           <CardDescription>
             No hay datos disponibles para el período seleccionado
@@ -133,10 +135,20 @@ export function TopCustomersByCategoryChart() {
     <Card className="@container/card">
       <CardHeader className="items-center pb-4">
         <CardTitle className="text-2xl font-bold text-neutral-700 dark:text-white">
-          Ventas por Sucursales
+          Ventas por Tiendas
         </CardTitle>
-        <CardDescription>
-          Distribución de ventas por canal en el período seleccionado
+        <CardDescription className="whitespace-pre-line">
+          Distribución de ventas por tienda en el período seleccionado
+          {generateFilterDescription(
+            {
+              family_product: filters.family_product ?? undefined,
+              sales_channel: filters.sales_channel,
+              start_date: filters.start_date,
+              end_date: filters.end_date,
+              min_purchases: filters.min_purchases,
+            },
+            filters.family_product ? getFamilyName(filters.family_product) : undefined
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6 pb-0">
