@@ -99,12 +99,12 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Contraseña</FieldLabel>
-                  <a
+                  {/* <a
                     href="#"
                     className="ml-auto text-sm underline-offset-4 hover:underline"
                   >
                     ¿Olvidaste tu contraseña?
-                  </a>
+                  </a> */}
                 </div>
                 <Input
                   id="password"
