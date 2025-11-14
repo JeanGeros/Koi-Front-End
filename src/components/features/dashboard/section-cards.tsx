@@ -31,27 +31,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  formatCurrencyShort,
-  formatNumber,
-} from "@/lib/utils/formatters";
+import { formatCurrencyShort, formatNumber } from "@/lib/utils/formatters";
 import {
   getDefaultEndDate,
   getDefaultStartDate,
 } from "@/lib/utils/date-helpers";
-import { getFamiliesAsOptions, getFamilyName } from "@/lib/constants/product-families";
+import {
+  getFamiliesAsOptions,
+  getFamilyName,
+} from "@/lib/constants/product-families";
 
 export function SectionCards() {
   const { filters, updateFilters } = useDashboardFilters();
 
   // ✅ Clean Architecture: Leer del contexto (Presentation Layer) y pasar explícitamente
   // Memoizar los parámetros para evitar re-renders innecesarios
-  const kpiCardsParams = useMemo(() => ({
-    start_date: filters.start_date,
-    end_date: filters.end_date,
-    sales_channel: filters.sales_channel,
-    family_product: filters.family_product,
-  }), [filters.start_date, filters.end_date, filters.sales_channel, filters.family_product]);
+  const kpiCardsParams = useMemo(
+    () => ({
+      start_date: filters.start_date,
+      end_date: filters.end_date,
+      sales_channel: filters.sales_channel,
+      family_product: filters.family_product,
+    }),
+    [
+      filters.start_date,
+      filters.end_date,
+      filters.sales_channel,
+      filters.family_product,
+    ]
+  );
 
   const {
     data: kpiCards,
@@ -97,9 +105,9 @@ export function SectionCards() {
     if (selectedSucursal && selectedSucursal !== "all") {
       newFilters.sales_channel = parseInt(selectedSucursal, 10);
     } else {
+      // Si es "all", eliminar sales_channel del objeto (no se enviará en la API)
       newFilters.sales_channel = undefined;
     }
-
     // Actualizar el contexto de filtros que será usado por todos los componentes
     // Esto también guardará en localStorage automáticamente
     updateFilters(newFilters);
@@ -107,47 +115,159 @@ export function SectionCards() {
 
   const sucursalesAsOptions = [
     {
-      id: 0,
-      name: "Internet",
-    },  
-    {
       id: 1,
       name: "Casa Matriz",
     },
     {
-      id: 2,
+      id: 3,
       name: "Sucursal",
     },
     {
-      id: 3,
-      name: "Outdoors",
-    },
-    {
       id: 4,
-      name: "TodoHogar",
+      name: "Outdoors",
     },
   ];
 
-  if (hasError) {
-    return (
-      <div className="px-4 lg:px-6">
-        <Card>
-          <CardContent className="py-6">
-            <div className="flex items-center gap-2 text-destructive">
-              <IconAlertTriangle className="size-5" />
-              <p>
-                Error al cargar datos:{" "}
-                {errorKPICards || "Error desconocido"}
-              </p>
+  console.log(selectedSucursal);
+  return (
+    <div className="space-y-4 px-4 lg:px-6">
+      <div className="flex flex-wrap justify-between lg:flex-nowrap gap-4 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs ">
+        {/* FILTROS */}
+        <Card className=" lg:w-[65%] w-full ">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-neutral-700 dark:text-white">
+              Filtros
+            </CardTitle>
+            <CardDescription>
+              Filtra los KPIs por rango de fechas
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap xl:flex-nowrap gap-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="fecha-inicio">Fecha Inicio</Label>
+              <Input
+                id="fecha-inicio"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-[140px]"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="fecha-termino">Fecha Término</Label>
+              <Input
+                id="fecha-termino"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-[140px]"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="familia-producto">Familia de Producto</Label>
+              <Select value={selectedFamily} onValueChange={setSelectedFamily}>
+                <SelectTrigger id="familia-producto" className="w-[140px]">
+                  <SelectValue placeholder="Todas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  {getFamiliesAsOptions().map((family) => (
+                    <SelectItem key={family.value} value={family.value}>
+                      {family.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="sucursal">Tienda</Label>
+              <Select
+                value={selectedSucursal}
+                onValueChange={setSelectedSucursal}
+              >
+                <SelectTrigger id="sucursal" className="w-[140px]">
+                  <SelectValue placeholder="Todas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  {sucursalesAsOptions.map((sucursal) => (
+                    <SelectItem
+                      key={sucursal.id}
+                      value={sucursal.id.toString()}
+                    >
+                      {sucursal.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-end">
+              <Button onClick={handleApplyFilters} disabled={isLoadingAll}>
+                {isLoadingAll ? "Cargando..." : "Aplicar Filtros"}
+              </Button>
             </div>
           </CardContent>
         </Card>
-      </div>
-    );
-  }
+        {isLoadingAll ? (
+          <Card className="h-full w-full lg:w-[35%] animate-pulse">
+            <CardHeader>
+              <CardDescription className="h-4 bg-muted rounded w-1/2" />
+              <CardTitle className="h-8 bg-muted rounded w-3/4 mt-2" />
+            </CardHeader>
+            <CardContent></CardContent>
 
-  return (
-    <div className="space-y-4 px-4 lg:px-6">
+            <CardFooter>
+              <div className="h-4 bg-muted rounded w-full" />
+            </CardFooter>
+          </Card>
+        ) : kpiCards ? (
+          <>
+            {/* Metadata del Período */}
+            <Card className="lg:w-[35%] w-full">
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold text-neutral-700 dark:text-white">
+                  Período de Análisis
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex justify-around flex-wrap gap-4 ">
+                <div>
+                  <p className="text-xs text-muted-foreground">Fecha Inicio</p>
+                  <p className="font-medium">{startDate}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Fecha Término</p>
+                  <p className="font-medium">{endDate}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Familia de Producto
+                  </p>
+                  <p className="font-medium ">
+                    {selectedFamily === "all"
+                      ? "Todas"
+                      : getFamilyName(parseInt(selectedFamily, 10))}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Tienda</p>
+                  <p className="font-medium">
+                    {selectedSucursal === "all"
+                      ? "Todas"
+                      : sucursalesAsOptions.find(
+                          (sucursal) =>
+                            sucursal.id.toString() === selectedSucursal
+                        )?.name || "N/A"}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        ) : null}
+      </div>
+
       {isLoadingAll ? (
         <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
           {[...Array(8)].map((_, i) => (
@@ -163,224 +283,107 @@ export function SectionCards() {
           ))}
         </div>
       ) : kpiCards ? (
-        <>
-          <div className="w-full flex flex-wrap gap-4  *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs ">
-            {/* FILTROS */}
-            <Card className="w-auto">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-neutral-700 dark:text-white">
-                  Filtros
-                </CardTitle>
-                <CardDescription>
-                  Filtra los KPIs por rango de fechas
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-wrap 2xl:flex-nowrap gap-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="fecha-inicio">Fecha Inicio</Label>
-                  <Input
-                    id="fecha-inicio"
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
-                </div>
+        <div className="grid lg:grid-cols-3 grid-cols-1 gap-4 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs">
+          {/* Top Spender */}
+          <Card className="@container/card">
+            <CardHeader>
+              <CardDescription className="flex items-center gap-2 dark:text-white">
+                <IconMoneybag className="size-6 lg:size-4" />
+                Cliente con mayor gasto
+              </CardDescription>
+              <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl text-blue-600 dark:text-white">
+                {formatCurrencyShort(kpiCards.topSpender?.totalSpending || 0)}
+              </CardTitle>
+              <CardAction>
+                <Badge
+                  variant="outline"
+                  className="border-blue-600 text-blue-600"
+                >
+                  <IconTrendingUp className="size-3" />
+                  Mayor gasto
+                </Badge>
+              </CardAction>
+            </CardHeader>
+            <CardFooter className="flex-col items-start gap-1.5 text-sm">
+              <div className="line-clamp-1 flex gap-2 font-medium">
+                {kpiCards.topSpender?.name || "N/A"}
+              </div>
+              <div className="text-muted-foreground">
+                {kpiCards.topSpender?.totalPurchases || 0} compras •{" "}
+                {kpiCards.topSpender?.totalItems || 0} productos
+              </div>
+            </CardFooter>
+          </Card>
 
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="fecha-termino">Fecha Término</Label>
-                  <Input
-                    id="fecha-termino"
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
-                </div>
+          {/* Top Buyer */}
+          <Card className="@container/card">
+            <CardHeader>
+              <CardDescription className="flex items-center gap-2 dark:text-white">
+                <IconChartBar className="size-8 lg:size-4" />
+                Cliente con más compras
+              </CardDescription>
+              <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl text-green-600 dark:text-white">
+                {formatNumber(kpiCards.topBuyer?.totalPurchases || 0)}
+              </CardTitle>
+              <CardAction>
+                <Badge
+                  variant="outline"
+                  className="border-green-600 text-green-600"
+                >
+                  <IconTrendingUp className="size-3" />
+                  Mayor cantidad de compras
+                </Badge>
+              </CardAction>
+            </CardHeader>
+            <CardFooter className="flex-col items-start gap-1.5 text-sm">
+              <div className="line-clamp-1 flex gap-2 font-medium">
+                {kpiCards.topBuyer?.name || "N/A"}
+              </div>
+              <div className="text-muted-foreground">
+                {formatCurrencyShort(kpiCards.topBuyer?.totalSpending || 0)}{" "}
+                gastado • {kpiCards.topBuyer?.totalItems || 0} productos
+              </div>
+            </CardFooter>
+          </Card>
 
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="familia-producto">Familia de Producto</Label>
-                  <Select
-                    value={selectedFamily}
-                    onValueChange={setSelectedFamily}
-                  >
-                    <SelectTrigger id="familia-producto" className="w-[180px]">
-                      <SelectValue placeholder="Todas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem>
-                      {getFamiliesAsOptions().map((family) => (
-                        <SelectItem key={family.value} value={family.value}>
-                          {family.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="sucursal">Tienda</Label>
-                  <Select
-                    value={selectedSucursal}
-                    onValueChange={setSelectedSucursal}
-                  >
-                    <SelectTrigger id="sucursal" className="w-[180px]">
-                      <SelectValue placeholder="Todas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem>
-                      {sucursalesAsOptions.map((sucursal) => (
-                        <SelectItem
-                          key={sucursal.id}
-                          value={sucursal.id.toString()}
-                        >
-                          {sucursal.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+          {/* Top Diverse Buyer */}
+          <Card className="@container/card">
+            <CardHeader>
+              <CardDescription className="flex items-center gap-2 dark:text-white">
+                <IconTarget className="size-6 lg:size-4" />
+                Cliente con más diversidad de compras
+              </CardDescription>
+              <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl text-purple-600 dark:text-white">
+                {formatNumber(kpiCards.topDiverseBuyer?.familiesCount || 0)}
+              </CardTitle>
+              <CardAction>
+                <Badge
+                  variant="outline"
+                  className="border-purple-600 text-purple-600"
+                >
+                  <IconTrendingUp className="size-3" />
+                  Familias
+                </Badge>
+              </CardAction>
+            </CardHeader>
+            <CardFooter className="flex-col items-start gap-1.5 text-sm">
+              <div className="line-clamp-1 flex gap-2 font-medium">
+                {kpiCards.topDiverseBuyer?.name || "N/A"}
+              </div>
+              <div className="text-muted-foreground">
+                {formatCurrencyShort(
+                  kpiCards.topDiverseBuyer?.totalSpending || 0
+                )}{" "}
+                gastado • {kpiCards.topDiverseBuyer?.totalPurchases || 0}{" "}
+                compras
+              </div>
+            </CardFooter>
+          </Card>
+        </div>
+      ) : null}
 
-                <div className="flex items-end">
-                  <Button onClick={handleApplyFilters} disabled={isLoadingAll}>
-                    {isLoadingAll ? "Cargando..." : "Aplicar Filtros"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Metadata del Período */}
-            <Card className="w-auto">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-neutral-700 dark:text-white">
-                  Período de Análisis
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-4">
-                <div>
-                  <p className="text-xs text-muted-foreground">Desde</p>
-                  <p className="font-medium">{startDate}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Hasta</p>
-                  <p className="font-medium">{endDate}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">
-                    Categoria de Familia
-                  </p>
-                  <p className="font-medium text-center">
-                    {selectedFamily === "all"
-                      ? "Todas"
-                      : getFamilyName(parseInt(selectedFamily, 10))}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Tienda</p>
-                  <p className="font-medium">{selectedFamily === "all"
-                      ? "Todas"
-                      : sucursalesAsOptions.find(sucursal => sucursal.id.toString())?.name}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid md:grid-cols-2 grid-cols-1 gap-4 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-3">
-            {/* Top Spender */}
-            <Card className="@container/card">
-              <CardHeader>
-                <CardDescription className="flex items-center gap-2 dark:text-white">
-                  <IconMoneybag className="size-4" />
-                  Cliente con mayor gasto
-                </CardDescription>
-                <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl text-blue-600 dark:text-white">
-                  {formatCurrencyShort(kpiCards.topSpender?.totalSpending || 0)}
-                </CardTitle>
-                <CardAction>
-                  <Badge
-                    variant="outline"
-                    className="border-blue-600 text-blue-600"
-                  >
-                    <IconTrendingUp className="size-3" />
-                    Mayor gasto
-                  </Badge>
-                </CardAction>
-              </CardHeader>
-              <CardFooter className="flex-col items-start gap-1.5 text-sm">
-                <div className="line-clamp-1 flex gap-2 font-medium">
-                  {kpiCards.topSpender?.name || "N/A"}
-                </div>
-                <div className="text-muted-foreground">
-                  {kpiCards.topSpender?.totalPurchases || 0} compras •{" "}
-                  {kpiCards.topSpender?.totalItems || 0} productos
-                </div>
-              </CardFooter>
-            </Card>
-
-            {/* Top Buyer */}
-            <Card className="@container/card">
-              <CardHeader>
-                <CardDescription className="flex items-center gap-2 dark:text-white">
-                  <IconChartBar className="size-4" />
-                  Cliente con más compras
-                </CardDescription>
-                <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl text-green-600 dark:text-white">
-                  {formatNumber(kpiCards.topBuyer?.totalPurchases || 0)}
-                </CardTitle>
-                <CardAction>
-                  <Badge
-                    variant="outline"
-                    className="border-green-600 text-green-600"
-                  >
-                    <IconTrendingUp className="size-3" />
-                    Mayor cantidad de compras
-                  </Badge>
-                </CardAction>
-              </CardHeader>
-              <CardFooter className="flex-col items-start gap-1.5 text-sm">
-                <div className="line-clamp-1 flex gap-2 font-medium">
-                  {kpiCards.topBuyer?.name || "N/A"}
-                </div>
-                <div className="text-muted-foreground">
-                  {formatCurrencyShort(kpiCards.topBuyer?.totalSpending || 0)}{" "}
-                  gastado • {kpiCards.topBuyer?.totalItems || 0} productos
-                </div>
-              </CardFooter>
-            </Card>
-
-            {/* Top Diverse Buyer */}
-            <Card className="@container/card">
-              <CardHeader>
-                <CardDescription className="flex items-center gap-2 dark:text-white">
-                  <IconTarget className="size-4" />
-                  Cliente con más diversidad de compras
-                </CardDescription>
-                <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl text-purple-600 dark:text-white">
-                  {formatNumber(kpiCards.topDiverseBuyer?.familiesCount || 0)}
-                </CardTitle>
-                <CardAction>
-                  <Badge
-                    variant="outline"
-                    className="border-purple-600 text-purple-600"
-                  >
-                    <IconTrendingUp className="size-3" />
-                    Familias
-                  </Badge>
-                </CardAction>
-              </CardHeader>
-              <CardFooter className="flex-col items-start gap-1.5 text-sm">
-                <div className="line-clamp-1 flex gap-2 font-medium">
-                  {kpiCards.topDiverseBuyer?.name || "N/A"}
-                </div>
-                <div className="text-muted-foreground">
-                  {formatCurrencyShort(
-                    kpiCards.topDiverseBuyer?.totalSpending || 0
-                  )}{" "}
-                  gastado • {kpiCards.topDiverseBuyer?.totalPurchases || 0}{" "}
-                  compras
-                </div>
-              </CardFooter>
-            </Card>
-          </div>
-          {/* Fila 1: Métricas de Alerta */}
-          {/* <div className="grid md:grid-cols-2 grid-cols-1 gap-4 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+      {/* Fila 1: Métricas de Alerta */}
+      {/* <div className="grid md:grid-cols-2 grid-cols-1 gap-4 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
             <Card className="@container/card">
               <CardHeader>
                 <CardDescription className="flex items-center gap-2 dark:text-white">
@@ -503,8 +506,6 @@ export function SectionCards() {
               </CardFooter>
             </Card>
           </div> */}
-        </>
-      ) : null}
     </div>
   );
 }

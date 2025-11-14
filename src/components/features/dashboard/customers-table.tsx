@@ -24,7 +24,14 @@ import { getFamilyName } from "@/lib/constants/product-families";
 import { generateFilterDescription } from "@/lib/utils/filter-helpers";
 import { dashboardService } from "@/lib/services/dashboard.service";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, Download } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Download,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -38,7 +45,15 @@ type SortBy = "total_spending" | "total_purchases" | "avg_purchase";
 type SortOrder = "desc" | "asc";
 
 // Componente SortIcon fuera del componente principal para evitar errores de linting
-function SortIcon({ field, currentSortBy, currentSortOrder }: { field: SortBy; currentSortBy: SortBy; currentSortOrder: SortOrder }) {
+function SortIcon({
+  field,
+  currentSortBy,
+  currentSortOrder,
+}: {
+  field: SortBy;
+  currentSortBy: SortBy;
+  currentSortOrder: SortOrder;
+}) {
   if (currentSortBy !== field) {
     return <ArrowUpDown className="ml-1 h-4 w-4" />;
   }
@@ -58,16 +73,27 @@ export function CustomersTable() {
   const pageSize = 50; // Tamaño de página para la API (siempre máximo)
 
   // Memoizar los parámetros para evitar re-renders innecesarios
-  const queryParams = useMemo(() => ({
-    start_date: filters.start_date,
-    end_date: filters.end_date,
-    family_product: filters.family_product ?? undefined,
-    sales_channel: filters.sales_channel,
-    page,
-    page_size: pageSize,
-    sort_by: sortBy,
-    sort_order: sortOrder,
-  }), [filters.start_date, filters.end_date, filters.family_product, filters.sales_channel, page, sortBy, sortOrder]);
+  const queryParams = useMemo(
+    () => ({
+      start_date: filters.start_date,
+      end_date: filters.end_date,
+      family_product: filters.family_product ?? undefined,
+      sales_channel: filters.sales_channel,
+      page,
+      page_size: pageSize,
+      sort_by: sortBy,
+      sort_order: sortOrder,
+    }),
+    [
+      filters.start_date,
+      filters.end_date,
+      filters.family_product,
+      filters.sales_channel,
+      page,
+      sortBy,
+      sortOrder,
+    ]
+  );
 
   const { data, isLoading, error } = useCustomersTable(queryParams);
 
@@ -176,8 +202,10 @@ export function CustomersTable() {
       link.href = url;
 
       // Generar nombre de archivo con las fechas
-      const startDate = filters.start_date || new Date().toISOString().split("T")[0];
-      const endDate = filters.end_date || new Date().toISOString().split("T")[0];
+      const startDate =
+        filters.start_date || new Date().toISOString().split("T")[0];
+      const endDate =
+        filters.end_date || new Date().toISOString().split("T")[0];
       link.download = `clientes_dashboard_${startDate}_${endDate}.xlsx`;
 
       // Descargar el archivo
@@ -194,13 +222,16 @@ export function CustomersTable() {
   return (
     <Card className="@container/card">
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between">
           <CardTitle className="text-2xl font-bold text-neutral-700 dark:text-white">
             Tabla de Clientes
           </CardTitle>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Mostrar:</span>
-            <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+            <Select
+              value={itemsPerPage.toString()}
+              onValueChange={handleItemsPerPageChange}
+            >
               <SelectTrigger className="w-[120px]">
                 <SelectValue />
               </SelectTrigger>
@@ -233,7 +264,9 @@ export function CustomersTable() {
               end_date: filters.end_date,
               min_purchases: filters.min_purchases,
             },
-            filters.family_product ? getFamilyName(filters.family_product) : undefined
+            filters.family_product
+              ? getFamilyName(filters.family_product)
+              : undefined
           )}
         </CardDescription>
       </CardHeader>
@@ -242,31 +275,53 @@ export function CustomersTable() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
           <div className="bg-muted/50 rounded-lg p-4">
             <div className="text-sm text-muted-foreground">Total Clientes</div>
-            <div className="text-2xl font-bold">{formatNumber(summary.totalCustomers)}</div>
+            <div className="text-2xl font-bold">
+              {formatNumber(summary.totalCustomers)}
+            </div>
           </div>
           <div className="bg-muted/50 rounded-lg p-4">
             <div className="text-sm text-muted-foreground">Ventas Total</div>
-            <div className="text-xl font-bold">{formatCurrency(summary.sales.totalAmount)}</div>
-            <div className="text-xs text-muted-foreground mt-1">{formatNumber(summary.sales.totalCount)} ventas</div>
+            <div className="text-xl font-bold">
+              {formatCurrency(summary.sales.totalAmount)}
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              {formatNumber(summary.sales.totalCount)} ventas
+            </div>
           </div>
           <div className="bg-muted/50 rounded-lg p-4">
             <div className="text-sm text-muted-foreground">Devoluciones</div>
-            <div className="text-xl font-bold">{formatCurrency(summary.returns.totalAmount)}</div>
-            <div className="text-xs text-muted-foreground mt-1">{formatNumber(summary.returns.totalCount)} devoluciones</div>
+            <div className="text-xl font-bold">
+              {formatCurrency(summary.returns.totalAmount)}
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              {formatNumber(summary.returns.totalCount)} devoluciones
+            </div>
           </div>
           <div className="bg-muted/50 rounded-lg p-4">
             <div className="text-sm text-muted-foreground">Facturas</div>
-            <div className="text-xl font-bold">{formatCurrency(summary.invoices.totalAmount)}</div>
-            <div className="text-xs text-muted-foreground mt-1">{formatNumber(summary.invoices.totalCount)} facturas</div>
+            <div className="text-xl font-bold">
+              {formatCurrency(summary.invoices.totalAmount)}
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              {formatNumber(summary.invoices.totalCount)} facturas
+            </div>
           </div>
           <div className="bg-muted/50 rounded-lg p-4">
             <div className="text-sm text-muted-foreground">Total General</div>
-            <div className="text-xl font-bold">{formatCurrency(summary.totals.totalAmount)}</div>
-            <div className="text-xs text-muted-foreground mt-1">{formatNumber(summary.totals.totalTransactions)} transacciones</div>
+            <div className="text-xl font-bold">
+              {formatCurrency(summary.totals.totalAmount)}
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              {formatNumber(summary.totals.totalTransactions)} transacciones
+            </div>
           </div>
           <div className="bg-muted/50 rounded-lg p-4">
-            <div className="text-sm text-muted-foreground">Promedio por Cliente</div>
-            <div className="text-xl font-bold">{formatCurrency(summary.sales.avgPerCustomer)}</div>
+            <div className="text-sm text-muted-foreground">
+              Promedio por Cliente
+            </div>
+            <div className="text-xl font-bold">
+              {formatCurrency(summary.sales.avgPerCustomer)}
+            </div>
           </div>
         </div>
 
@@ -287,7 +342,11 @@ export function CustomersTable() {
                     onClick={() => handleSort("total_purchases")}
                   >
                     Ventas
-                    <SortIcon field="total_purchases" currentSortBy={sortBy} currentSortOrder={sortOrder} />
+                    <SortIcon
+                      field="total_purchases"
+                      currentSortBy={sortBy}
+                      currentSortOrder={sortOrder}
+                    />
                   </Button>
                 </TableHead>
                 <TableHead>Devoluciones</TableHead>
@@ -300,7 +359,11 @@ export function CustomersTable() {
                     onClick={() => handleSort("total_spending")}
                   >
                     Gasto Total
-                    <SortIcon field="total_spending" currentSortBy={sortBy} currentSortOrder={sortOrder} />
+                    <SortIcon
+                      field="total_spending"
+                      currentSortBy={sortBy}
+                      currentSortOrder={sortOrder}
+                    />
                   </Button>
                 </TableHead>
                 <TableHead>
@@ -311,7 +374,11 @@ export function CustomersTable() {
                     onClick={() => handleSort("avg_purchase")}
                   >
                     Promedio
-                    <SortIcon field="avg_purchase" currentSortBy={sortBy} currentSortOrder={sortOrder} />
+                    <SortIcon
+                      field="avg_purchase"
+                      currentSortBy={sortBy}
+                      currentSortOrder={sortOrder}
+                    />
                   </Button>
                 </TableHead>
                 <TableHead>Artículos</TableHead>
@@ -402,18 +469,17 @@ export function CustomersTable() {
         </div>
 
         {/* Paginación */}
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center flex-wrap justify-between mt-4">
           <div className="text-sm text-muted-foreground">
-            Mostrando {startIndex + 1} -{" "}
-            {Math.min(endIndex, customers.length)} de{" "}
-            {formatNumber(customers.length)} clientes
+            Mostrando {startIndex + 1} - {Math.min(endIndex, customers.length)}{" "}
+            de {formatNumber(customers.length)} clientes
             {customers.length < pagination.totalCustomers && (
               <span className="ml-2">
                 (de {formatNumber(pagination.totalCustomers)} totales)
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mt-2">
             <Button
               variant="outline"
               size="sm"
@@ -441,4 +507,3 @@ export function CustomersTable() {
     </Card>
   );
 }
-

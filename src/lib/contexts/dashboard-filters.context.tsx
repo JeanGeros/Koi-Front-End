@@ -159,6 +159,13 @@ export function DashboardFiltersProvider({
   const updateFilters = useCallback((updates: Partial<DashboardFilters>) => {
     setFiltersState((prev) => {
       const updated = { ...prev, ...updates };
+      // Eliminar propiedades undefined para que no se envíen a la API
+      if (updated.sales_channel === undefined) {
+        delete updated.sales_channel;
+      }
+      if (updated.family_product === undefined || updated.family_product === null) {
+        delete updated.family_product;
+      }
       // Asegurar que siempre haya fechas predeterminadas si se eliminan
       if (!updated.start_date) {
         updated.start_date = getDefaultDates().start_date;
