@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/auth/auth.context"
 import { loginSchema } from "@/lib/schemas/auth.schema"
@@ -9,13 +8,14 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Field, FieldGroup, FieldLabel, FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { RedirectModal } from "@/components/auth/redirect-modal"
 import type { LoginFormData } from "@/lib/types/auth.types"
 
 type LoginFormProps = React.ComponentProps<"div">
 
 export function LoginForm({ className, ...props }: LoginFormProps) {
-  const router = useRouter()
   const { login } = useAuth()
+  const [showRedirect, setShowRedirect] = useState(false)
 
   const [formData, setFormData] = useState<LoginFormData>({
     username: "",
@@ -47,7 +47,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
 
     try {
       await login(result.data)
-      router.push("/dashboard")
+      setShowRedirect(true)
     } catch (err: unknown) {
       const message =
         typeof err === "object" && err && "message" in err
@@ -74,6 +74,8 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
   }
 
   return (
+    <>
+    {showRedirect && <RedirectModal />}
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
@@ -131,5 +133,6 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
         </CardContent>
       </Card>
     </div>
+    </>
   )
 }
